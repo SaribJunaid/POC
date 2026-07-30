@@ -1,54 +1,37 @@
-# GoHighLevel Custom Menu Link Authentication POC
+# GoHighLevel Custom Page SSO App
 
-This repository contains a minimal but production-oriented proof of concept for opening an external web application from a GoHighLevel custom menu link, discovering the current GHL context, and authorizing the current user via the GHL API using a backend-only Private Integration Token.
+This repository contains a React + FastAPI implementation of the official GoHighLevel Marketplace Custom Page SSO flow. Authentication is based only on the encrypted SSO payload returned by GHL through `postMessage`; the frontend never decrypts that payload and never authenticates from URL parameters.
 
 ## Architecture
 - Frontend: React + Vite + JavaScript
 - Backend: FastAPI + Python
-- Communication: frontend calls the backend over HTTP, and the backend calls the GHL API using a private token stored only on the backend.
+- Auth flow: frontend requests `REQUEST_USER_DATA`, posts the encrypted payload to FastAPI, receives a JWT, stores it in `sessionStorage`, and fetches the current session.
 
 ## Project Structure
 ```text
-ghl-auth-poc/
-├── backend/
-│   ├── app/
-│   │   ├── __init__.py
-│   │   ├── main.py
-│   │   ├── config.py
-│   │   ├── ghl_client.py
-│   │   ├── auth.py
-│   │   ├── schemas.py
-│   │   └── context.py
-│   ├── .env.example
-│   ├── .gitignore
-│   ├── requirements.txt
-│   └── README.md
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── LoadingScreen.jsx
-│   │   │   ├── AccessDenied.jsx
-│   │   │   ├── Authorized.jsx
-│   │   │   └── DebugPanel.jsx
-│   │   ├── services/
-│   │   │   └── api.js
-│   │   ├── utils/
-│   │   │   └── ghlContext.js
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── index.css
-│   ├── .env.example
-│   ├── .gitignore
-│   ├── package.json
-│   └── README.md
-├── .gitignore
-└── README.md
+backend/
+  app/
+    main.py
+    config.py
+    crypto.py
+    models.py
+    routes/sso.py
+    services/jwt_service.py
+    services/sso_service.py
+frontend/
+  src/
+    pages/SSOPage.jsx
+    pages/Dashboard.jsx
+    services/ssoService.js
+    hooks/useSession.js
+    components/Loading.jsx
+    components/ProtectedRoute.jsx
 ```
 
 ## Prerequisites
 - Python 3.10+
 - Node.js 18+
-- A valid GHL Private Integration Token
+- A GHL Marketplace app Custom Page with a generated Shared Secret
 
 ## Backend Setup
 ```bash
@@ -56,15 +39,21 @@ cd backend
 python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
-copy .env.example .env
 ```
 
 Update `.env` with your real values:
 ```env
-GHL_API_TOKEN=your_private_integration_token
-GHL_API_BASE_URL=https://services.leadconnectorhq.com
+GHL_SHARED_SECRET=your_ghl_shared_secret
+JWT_SECRET=generate_a_strong_random_value
+JWT_EXPIRE_MINUTES=60
 FRONTEND_URL=http://localhost:5173
 ALLOWED_ORIGINS=http://localhost:5173,https://localhost:5173
+```
+
+For production, this app is configured for:
+```env
+FRONTEND_URL=https://poc-jade-sigma.vercel.app/
+ALLOWED_ORIGINS=https://poc-jade-sigma.vercel.app,https://poc-jade-sigma.vercel.app/
 ```
 
 Run the backend:
@@ -76,11 +65,6 @@ uvicorn app.main:app --reload --port 8000
 ```bash
 cd frontend
 npm install
-copy .env.example .env
-```
-
-Run the frontend:
-```bash
 npm run dev
 ```
 
@@ -90,47 +74,24 @@ npm run dev
 curl http://localhost:8000/health
 ```
 
-### Location context
+### Decrypt SSO payload
 ```bash
-curl "http://localhost:8000/api/ghl/context?location_id=LOCATION_ID"
-```
-
-### Authorization validation
-```bash
-curl -X POST http://localhost:8000/api/auth/validate \
+curl -X POST http://localhost:8000/sso/decrypt \
   -H "Content-Type: application/json" \
-  -d '{"location_id":"LOCATION_ID","user_id":"USER_ID","email":"user@example.com"}'
+  -d '{"key":"ENCRYPTED_GHL_PAYLOAD"}'
 ```
 
-## GHL Custom Menu Link Configuration
-Use a custom menu link that opens your frontend app with a URL such as:
-```text
-https://YOUR_DOMAIN.com/?locationId={{location.id}}
+### Current session
+```bash
+curl http://localhost:8000/sso/session \
+  -H "Authorization: Bearer JWT_FROM_DECRYPT_RESPONSE"
 ```
 
-If GHL provides additional parameters, the frontend will detect them without breaking.
-
-## Testing Different Users
-The example users below are for validation only. The app uses live GHL API responses rather than hardcoded values.
-
-- Muhammad Kashir (`kashir@gmail.com`) → expected DENIED (role: user)
-- Muhammad Usman (`usman@gmail.com`) → expected AUTHORIZED (role: admin)
-- Sarib Junaid (`sarib.irenic@gmail.com`) → expected AUTHORIZED (agency owner)
-
-## Authorization Logic
-The backend checks:
-1. The requested location exists.
-2. The user can be found in the GHL account for the matching company.
-3. The user belongs to the requested location.
-4. The user is either an admin or an agency owner.
+## GHL Custom Page Configuration
+Point the GHL Marketplace Custom Page iframe to the frontend app root. The root route requests the encrypted SSO payload from the parent GHL window, validates it through the backend, and redirects to the dashboard after the JWT session is established.
 
 ## Security Notes
-- The GHL private token is stored only on the backend.
-- The frontend never receives the token.
-- The app avoids cross-origin parent window access and uses only safe browser mechanisms.
-- Use HTTPS for deployment.
-
-## Known Limitations
-- This is a proof of concept, not a full identity or permission platform.
-- The app depends on what the GHL environment exposes through the URL, iframe context, or postMessage.
-- Exact endpoint behavior may vary slightly depending on the tenant/account configuration.
+- The GHL shared secret is stored only on the backend.
+- The frontend never decrypts the SSO payload.
+- JWTs are stored in `sessionStorage`, not `localStorage`.
+- Use HTTPS in production.

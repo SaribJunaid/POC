@@ -6,10 +6,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def env_value(name: str, default: str = "") -> str:
+    value = os.getenv(name)
+    return value if value not in (None, "") else default
+
+
 class Settings:
-    GHL_API_TOKEN: str | None = os.getenv("GHL_API_TOKEN")
-    GHL_API_BASE_URL: str = os.getenv("GHL_API_BASE_URL", "https://services.leadconnectorhq.com")
-    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    GHL_SHARED_SECRET: str = env_value("GHL_SHARED_SECRET")
+    JWT_SECRET: str = env_value("JWT_SECRET", "change-me-in-production")
+    JWT_ALGORITHM: str = env_value("JWT_ALGORITHM", "HS256")
+    JWT_EXPIRE_MINUTES: int = int(env_value("JWT_EXPIRE_MINUTES", "60"))
+    FRONTEND_URL: str = env_value("FRONTEND_URL", "http://localhost:5173")
 
     @classmethod
     def allowed_origins(cls) -> List[str]:
