@@ -5,3 +5,4 @@ __pycache__/
 .env.example
 node_modules/
 dist/
+.pytest_cache/

@@ -8,8 +8,24 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<SSOPage />} />
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/location/:locationId" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/location/:locationId"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
