@@ -32,8 +32,8 @@ def decrypt_sso(payload: DecryptRequest) -> DecryptResponse:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="SSO validation failed") from exc
 
 
-@router.get("/sso/session", response_model=SessionUser)
-def get_session(credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)] = None) -> SessionUser:
+@router.get("/sso/session")
+def get_session(credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)] = None) -> Dict[str, object]:
     if not credentials or not credentials.credentials:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing bearer token")
 
@@ -42,7 +42,7 @@ def get_session(credentials: Annotated[HTTPAuthorizationCredentials | None, Depe
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc)) from exc
 
-    return SessionUser(**sso_service.build_session_payload(token_payload))
+    return sso_service.build_session_payload(token_payload)
 
 
 @router.post("/logout")

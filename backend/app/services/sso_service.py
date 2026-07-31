@@ -30,7 +30,7 @@ class SSOService:
         }
 
     def build_session_payload(self, token_payload: Dict[str, Any]) -> Dict[str, Any]:
-        return {
+        data = {
             "userId": token_payload.get("sub"),
             "companyId": token_payload.get("company_id"),
             "role": token_payload.get("role"),
@@ -43,6 +43,11 @@ class SSOService:
             "appStatus": token_payload.get("app_status"),
             "whitelabelDomain": token_payload.get("whitelabel_domain"),
             "logoUrl": token_payload.get("logo_url"),
+        }
+        return {
+            "status": "success",
+            "data": data,
+            **data,
         }
 
     def _validate_user_data(self, user_data: Dict[str, Any]) -> None:
