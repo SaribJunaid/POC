@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import { isAuthenticated } from '../services/ssoService';
+import { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
 
 export default function ProtectedRoute({ children }) {
   const location = useLocation();

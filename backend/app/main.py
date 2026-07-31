@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
-from .routes import sso
+from .routes import sso, auth
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("ghl_sso_app")
@@ -20,4 +20,4 @@ app.add_middleware(
 )
 
 app.include_router(sso.router)
-
+app.include_router(auth.router)

@@ -12,7 +12,9 @@ def env_value(name: str, default: str = "") -> str:
 
 
 class Settings:
+    GHL_API_TOKEN: str = env_value("GHL_API_TOKEN")
     GHL_SHARED_SECRET: str = env_value("GHL_SHARED_SECRET")
+    GHL_API_BASE_URL: str = env_value("GHL_API_BASE_URL", "https://services.leadconnectorhq.com")
     JWT_SECRET: str = env_value("JWT_SECRET", "change-me-in-production")
     JWT_ALGORITHM: str = env_value("JWT_ALGORITHM", "HS256")
     JWT_EXPIRE_MINUTES: int = int(env_value("JWT_EXPIRE_MINUTES", "60"))
