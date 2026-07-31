@@ -1,2 +1,15 @@
-// @ts-nocheck
-// This file has been superseded by Loading.tsx. No longer used.
+export default function Loading() {
+    return (
+        <div
+            style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100vh",
+                fontSize: "20px"
+            }}
+        >
+            Authenticating with GoHighLevel...
+        </div>
+    );
+}
