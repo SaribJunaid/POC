@@ -1,5 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import Dashboard from './pages/Dashboard';
+import ChatPage from './pages/ChatPage';
 import SSOPage from './pages/SSOPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -13,7 +13,7 @@ export default function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <ChatPage />
             </ProtectedRoute>
           }
         />
@@ -22,7 +22,7 @@ export default function App() {
           path="/location/:locationId"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <ChatPage />
             </ProtectedRoute>
           }
         />
