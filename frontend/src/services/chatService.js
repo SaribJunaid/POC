@@ -41,22 +41,40 @@ export async function sendMessage(message, session) {
   };
 
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
+
     const response = await fetch(
       'https://n8n.irenictech.xyz/webhook/e289fa43-de51-4821-b45b-9a0e8a3867bd',
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       }
     );
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error('Unable to reach AI assistant. Please try again.');
     }
 
-    const data = await response.json();
-    return data?.reply || data?.response || '';
+    const text = await response.text();
+    if (!text.trim()) {
+      return '';
+    }
+
+    try {
+      const data = JSON.parse(text);
+      return data?.reply || data?.response || text;
+    } catch {
+      return text;
+    }
   } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error('AI assistant took too long to respond. Please try again.');
+    }
     throw new Error(error?.message || 'Unable to reach AI assistant. Please try again.');
   }
 }
