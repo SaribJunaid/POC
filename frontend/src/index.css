@@ -13,6 +13,27 @@ body {
   background: linear-gradient(135deg, #eff6ff 0%, #f9fafb 100%);
 }
 
+#root {
+  min-height: 100vh;
+}
+
+.widget-shell {
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  background: #f8fafc;
+}
+
+.widget-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
 * { box-sizing: border-box; }
 
 button, input, select { font: inherit; }
